@@ -6,7 +6,9 @@ const colors = ["red", "green", "yellow", "blue", "pink", "purple"]
 const calendar = document.getElementById('Calendar');
 
 window.onload = function () {
-    const exampleData = [{ start: 30, end: 120 }, { start: 70, end: 200 }, { start: 150, end: 230 }, { start: 190, end: 400 }];
+    // const exampleData = [{ start: 30, end: 120 }, { start: 70, end: 200 }, { start: 150, end: 230 }, { start: 190, end: 400 }];
+    // const exampleData = [{start:30, end:120}, {start:120, end:200}, {start: 290, end:400}, {start: 10, end: 540}];
+    const exampleData = [{start:30, end:120}, {start:120, end:290}, {start: 240, end:400}, {start: 10, end: 540}, {start: 10, end: 540}];
     renderDay(exampleData);
 }
 
