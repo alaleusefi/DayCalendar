@@ -1,0 +1,19 @@
+.time {   
+    display: inline-block;
+    width: 100px;
+    float: left;
+}
+.time ul{list-style-type: none;margin-top: 0;}
+.time ul li{height: 58px;}
+.calendar{
+    border:1px solid black;
+    height: 540px;
+    width: calc(100% - 110px);
+    float: left;
+    position: relative;
+}
+.event{
+    border:1px solid;
+    position: absolute;
+    box-sizing: border-box;
+}
