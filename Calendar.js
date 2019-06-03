@@ -2,7 +2,7 @@ eventsData = null;
 events = null;
 moments = null;
 noOfColumns = 0;
-const colours = ["red", "green", "yellow", "blue", "pink", "purple"]
+const colours = ["#6ca0dc", "#dbb2d1", "#F5B7B1", "#EDBB99", "#D1F2EB", "#A9CCE3"]
 const calendar = document.getElementById('Calendar');
 
 window.onload = function () {
@@ -132,8 +132,9 @@ function event(start, end, color) {
 
     newElement.className = 'event';
     newElement.style.borderColor = color;
-    newElement.style.borderWidth = "10px";
-    newElement.style.borderRadius = "20px";
+    newElement.style.borderWidth = "1px";
+    newElement.style.background = color;
+    newElement.style.borderRadius = "5px";
 
     newElement.drawn = false;
     newElement.neighbours = [];
