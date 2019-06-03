@@ -8,7 +8,8 @@ const calendar = document.getElementById('Calendar');
 window.onload = function () {
     // const exampleData = [{ start: 30, end: 120 }, { start: 70, end: 200 }, { start: 150, end: 230 }, { start: 190, end: 400 }];
     // const exampleData = [{start:30, end:120}, {start:120, end:200}, {start: 290, end:400}, {start: 10, end: 540}];
-    const exampleData = [{start:30, end:120}, {start:120, end:290}, {start: 240, end:400}, {start: 10, end: 540}, {start: 10, end: 540}];
+    // const exampleData = [{ start: 30, end: 120 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 540 }, { start: 10, end: 540 }];
+    const exampleData = [{ start: 50, end: 120 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 40 }, { start: 10, end: 40 }];
     renderDay(exampleData);
 }
 
@@ -17,6 +18,7 @@ function renderDay(data) {
     clearDay();
     generateEvents();
     determineOverlaps();
+    sortEventsByNumberOfNeighbours();
     drawEvents();
 }
 
@@ -32,42 +34,66 @@ function generateEvents() {
         let eventData = eventsData[i];
         let color = colors[i % colors.length];
         let top = eventData.start;
-        events.push(new event(top, eventData.end, color));
+        let newEvent = new event(top, eventData.end, color);
+        newEvent.number = i;
+        addEventText(newEvent);
+        events.push(newEvent);
     };
 }
 
 function determineOverlaps() {
     events.forEach(event => {
-        moments.push(new moment(event.start, +1));
-        moments.push(new moment(event.end, -1));
+        moments.push(new moment(event.start, +1, event));
+        moments.push(new moment(event.end, -1, event));
     });
     moments.sort((m1, m2) => m1.minute - m2.minute);
     events.forEach(event => {
-        event.numberOfNeighbours = 0;
         event.maxNumberOfNeighbours = 0;
         let neighbourCounter = 0;
         for (i = 0; i < moments.length; i++) {
             let moment = moments[i];
-            neighbourCounter += moment.eventChange;
-            if (moment.minute >= event.start & moment.minute < event.end) {
-                event.maxNumberOfNeighbours = Math.max(event.maxNumberOfNeighbours, neighbourCounter);
-                noOfColumns = Math.max(event.maxNumberOfNeighbours);
+            if (moment.minute < event.end) {
+                neighbourCounter += moment.eventChange;
+                if (moment.minute >= event.start)
+                    event.maxNumberOfNeighbours = Math.max(event.maxNumberOfNeighbours, neighbourCounter);
             }
         }
-        console.log(event.maxNumberOfNeighbours);
+
+        event.maxNumberOfNeighbours--;
+
+        events.forEach(neighbouringEvent => {
+            if (neighbouringEvent.end > event.start & event.end > neighbouringEvent.start & event != neighbouringEvent)
+                event.neighbours.push(neighbouringEvent);
+        });
+
+        // console.log(event.number + ": Max " + event.maxNumberOfNeighbours + " Neighbours:" + event.neighbours.map(n => n.number).join(", "));
     });
 }
 
-function drawEvents() {
-    for (column = 0; column < noOfColumns; column++) {
-        let lastDrawnMoment = 0;
-        events.forEach(event => {
+function sortEventsByNumberOfNeighbours() {
+    events.sort((e1, e2) => e2.neighbours.length - e1.neighbours.length);
+}
 
+function drawEvents() {
+    for (column = 0; column < 10; column++) {
+        let lastDrawnMoment = 0;
+
+        events.forEach(event => {
             if (event.drawn == false & event.start >= lastDrawnMoment) {
-                let widthPercent = 100 / noOfColumns;
-                event.style.width = widthPercent + "%";
-                console.log(column);
-                event.style.left = column * widthPercent + "%";
+                let widthPercent = 100 / (event.maxNumberOfNeighbours + 1);
+                let rightMostNeighbour = event.rightMostDrawnNeighbour();
+                let right = rightMostNeighbour == null
+                    ? 0
+                    : rightMostNeighbour.offsetLeft + rightMostNeighbour.offsetWidth;
+
+                event.style.left = right + "px";
+                if (event.allNeighboursDrawn()) {
+                    event.style.width = calendar.offsetWidth - right + "px";
+                }
+                else {
+                    event.style.width = widthPercent + "%";
+                }
+
                 event.drawn = true;
                 calendar.appendChild(event);
                 lastDrawnMoment = event.end;
@@ -93,12 +119,21 @@ function event(start, end, color) {
     newElement.style.borderRadius = "20px";
 
     newElement.drawn = false;
-    addEventText(newElement);
+    newElement.neighbours = [];
+    newElement.drawnNeighbours = function () { return newElement.neighbours.filter(n => n.drawn == true) };
+    newElement.allNeighboursDrawn = function () {
+        if (newElement.neighbours.length == 0) return true;
+        return newElement.drawnNeighbours().length == newElement.neighbours.length;
+    };
+    newElement.rightMostDrawnNeighbour = function () {
+        if (newElement.drawnNeighbours().length == 0) return null;
+        return newElement.drawnNeighbours().sort((n1, n2) => n2.offsetLeft - n1.offsetLeft)[0];
+    };
     return newElement;
 };
 
-function moment(minute, change) {
-    return { minute: minute, eventChange: change }
+function moment(minute, change, event) {
+    return { minute: minute, eventChange: change, event: event }
 }
 
 function addEventText(event) {
@@ -106,6 +141,7 @@ function addEventText(event) {
     let startM = event.start % 60;
     let endtH = Math.floor(event.end / 60) + 9;
     let endtM = event.end % 60;
-    let eventText = document.createTextNode('Event : ' + startH + ':' + startM + ' - ' + endtH + ':' + endtM);
+    let eventText = document.createTextNode('Event ' + event.number + ':  ' + event.start + ' to ' + event.end);
+    // let eventText = document.createTextNode('Event ' + event.number + ' >> ' + startH + ':' + startM + ' - ' + endtH + ':' + endtM);
     event.appendChild(eventText);
 }
