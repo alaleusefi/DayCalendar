@@ -9,6 +9,9 @@ window.onload = function () {
     // const exampleData = [{ start: 30, end: 120 }, { start: 70, end: 200 }, { start: 150, end: 230 }, { start: 190, end: 400 }];
     // const exampleData = [{start:30, end:120}, {start:120, end:200}, {start: 290, end:400}, {start: 10, end: 540}];
     const exampleData = [{ start: 30, end: 120 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 540 }, { start: 10, end: 540 }];
+    //const exampleData = [{ start: 130, end: 120 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 540 }, { start: 10, end: 540 }];
+    // const exampleData = [{ start: 30, end: 600 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 540 }, { start: 10, end: 540 }];
+    //const exampleData = [{ start: -30, end: 60 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 540 }, { start: 10, end: 540 }];
     // const exampleData = [{ start: 50, end: 120 }, { start: 120, end: 290 }, { start: 240, end: 400 }, { start: 10, end: 40 }, { start: 10, end: 40 }];
     renderDay(exampleData);
 }
@@ -35,10 +38,16 @@ function generateEvents() {
         let eventData = eventsData[i];
         let color = colours[i % colours.length];
         let top = eventData.start;
-        let newEvent = new event(top, eventData.end, color);
-        newEvent.number = i;
-        addEventText(newEvent);
-        events.push(newEvent);
+        let newEvent = null;
+        try {
+            newEvent = new event(top, eventData.end, color);
+            newEvent.number = i;
+            addEventText(newEvent);
+            events.push(newEvent);
+        }
+        catch (err) {
+            window.alert(err);
+        }
     };
 }
 
@@ -104,13 +113,15 @@ function drawEvents() {
 }
 
 function event(start, end, color) {
-    //Todo: Validate that start is always smaller than end
-    //Todo: Validate that event falls entirely within work hours
-    if(start>end)
-      {      
-       window.alert("Please make sure your event start point is less than end point.");
-       return;
-     }
+    if (start > end) {
+        throw "Please make sure your event start point is less than end point.";
+    }
+    if (end > 540) {
+        throw "Please change the end point, event after 18:00 can not be set.";
+    }
+    if (start < 0) {
+        throw "Please change the start point, event befor 09:00 can not be set.";
+    }
     let newElement = document.createElement('div');
 
     newElement.start = start;
@@ -149,12 +160,12 @@ function moment(minute, change, event) {
     return { minute: minute, eventChange: change, event: event }
 }
 
+
 function addEventText(event) {
     let startH = Math.floor(event.start / 60) + 9;
     let startM = event.start % 60;
     let endtH = Math.floor(event.end / 60) + 9;
     let endtM = event.end % 60;
-    // let eventText = document.createTextNode('Event ' + event.number + ':  ' + event.start + ' to ' + event.end);
     let eventText = document.createTextNode(startH + ':' + startM + ' - ' + endtH + ':' + endtM);
     event.appendChild(eventText);
 }
